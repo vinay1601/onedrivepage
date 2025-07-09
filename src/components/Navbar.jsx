@@ -1,17 +1,31 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { ClipboardList, CircleUserRound, LogOut } from "lucide-react";
-import Logo from './Logo';
+import { ClipboardList, CircleUserRound, LogOut } from "lucide-react"
+import Logo from './Logo'
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/authSlice'
+import { useRouter } from 'next/navigation'
 
 const Navbar = () => {
-    const [isLogging, setLogging] = useState(true)
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
+    const dispatch = useDispatch()
+    const router = useRouter()
     const username = 'Vinay'
 
+    const handleLogout = () => {
+        document.cookie = 'token=; Max-Age=0; path=/'
+        dispatch(logout())
+        router.push('/login')
+    };
 
-
-
-
+    const NavItems = isAuthenticated ? [
+        {
+            label: "DashBoard",
+            icon: ClipboardList,
+            link: "/dashboard"
+        }
+    ] : [];
 
     return (
         <>
@@ -25,7 +39,7 @@ const Navbar = () => {
                     <div className='flex flex-1 items-center justify-end h-full w-full gap-4'>
                         <div className='hidden lg:flex w-full h-full justify-end'>
                             <ul className='flex w-fit h-full gap-6'>
-                                {isLogging && NavItems.map((item, index) => (
+                                {isAuthenticated && NavItems.map((item, index) => (
                                     <li key={index} className='navlink w-fit h-full items-center justify-center flex group border-b-2 border-transparent hover:border-white transition-all'>
                                         <Link
                                             href={item.link}
@@ -37,9 +51,21 @@ const Navbar = () => {
                                     </li>
                                 ))}
 
+                                {isAuthenticated && (
+                                    <li className='navlink w-fit h-full items-center justify-center flex group border-b-2 border-transparent hover:border-white transition-all'>
+                                        <button
+                                            onClick={handleLogout}
+                                            className='flex items-center gap-2 text-sm px-3 py-2 font-medium text-black hover:text-gray-600 transition-colors'
+                                        >
+                                            <LogOut size={18} />
+                                            Logout
+                                        </button>
+                                    </li>
+                                )}
+
                                 <li className='navlink w-fit h-full items-center justify-center flex group border-b-2 border-transparent hover:border-white transition-all'>
                                     {
-                                        isLogging ? (
+                                        isAuthenticated ? (
                                             <div className='flex items-center gap-2 text-sm px-3 py-2 font-medium text-black hover:text-gray-600 transition-colors'>
                                                 <CircleUserRound size={18} />
                                                 {username}
@@ -47,7 +73,7 @@ const Navbar = () => {
                                         ) : (
                                             <Link href='/login' className='flex items-center gap-2 text-sm px-3 py-2 font-medium text-black hover:text-gray-600 transition-colors'>
                                                 <CircleUserRound size={18} />
-                                                login
+                                                Login
                                             </Link>
                                         )
                                     }
@@ -62,18 +88,3 @@ const Navbar = () => {
 }
 
 export default Navbar
-
-const NavItems = [
-    {
-        label: "DashBoard",
-        icon: ClipboardList,
-        link: "/Dashboard"
-    },
-    {
-        label: "Log Out",
-        icon: LogOut,
-        link: "/"
-    }
-]
-
-

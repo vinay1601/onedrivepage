@@ -2,10 +2,12 @@
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { authUser } from "../lib/User";
+import { useDispatch } from 'react-redux'
+import { loginSuccess } from '../store/authSlice'
 
 const page = () => {
     const router = useRouter()
-
+    const dispatch = useDispatch();
     const [email, setEmail] = useState()
     const [password, setPassword] = useState()
 
@@ -19,7 +21,8 @@ const page = () => {
         if (user) {
             const token = 'addcookiesforadmin'
             document.cookie = `token=${token}; path=/; max-age=3600`
-            router.push('/Dashboard')
+            dispatch(loginSuccess(token));
+            router.push('/dashboard')
         } else {
             alert('Invalid credentials')
         }
