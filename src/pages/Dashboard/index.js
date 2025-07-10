@@ -98,7 +98,7 @@ export default function Dashboard({ listings }) {
 
             dispatch(showFeedback({ type: 'success', message: 'Listing updated!' }));
         } else {
-            dispatch(showFeedback({ type: 'error', message: 'Failed to update' }));
+            dispatch(showFeedback({ type: 'error', message: 'Failed to update!' }));
         }
     };
 
