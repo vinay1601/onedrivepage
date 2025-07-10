@@ -1,9 +1,10 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
-import { authUser } from "../lib/User";
+import { authUser } from "../lib/User"
 import { useDispatch } from 'react-redux'
 import { loginSuccess } from '../store/authSlice'
+import { showFeedback } from '@/store/feedbackSlice'
 
 const page = () => {
     const router = useRouter()
@@ -21,10 +22,10 @@ const page = () => {
         if (user) {
             const token = 'addcookiesforadmin'
             document.cookie = `token=${token}; path=/; max-age=3600`
-            dispatch(loginSuccess(token));
+            dispatch(loginSuccess({ token, username: "Vinay" }));
             router.push('/dashboard')
         } else {
-            alert('Invalid credentials')
+            dispatch(showFeedback({ type: 'error', message: 'Invalid credentials!' }));
         }
     }
     return (
@@ -91,13 +92,6 @@ const page = () => {
                             </button>
                         </div>
                     </form>
-
-                    <p className="mt-10 text-center text-sm/6 text-gray-500">
-                        Not a member?{' '}
-                        <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                            Start a 14 day free trial
-                        </a>
-                    </p>
                 </div>
             </div>
         </>

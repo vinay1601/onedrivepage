@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
-import { ClipboardList, CircleUserRound, LogOut } from "lucide-react"
+import { ClipboardList, CircleUserRound, LogOut, History } from "lucide-react"
 import Logo from './Logo'
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice'
@@ -24,6 +24,11 @@ const Navbar = () => {
             label: "DashBoard",
             icon: ClipboardList,
             link: "/dashboard"
+        },
+        {
+            label: "Audit Log",
+            icon: History,
+            link: "/auditlog"
         }
     ] : [];
 

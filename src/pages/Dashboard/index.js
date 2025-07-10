@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Auth from '../../lib/Auth'
+import { useSelector, useDispatch } from 'react-redux'
+import { showFeedback } from '@/store/feedbackSlice'
 
 export async function getServerSideProps(context) {
     const authCheck = Auth(context)
@@ -22,7 +24,10 @@ export default function Dashboard({ listings }) {
     const [filteredStatus, setFilteredStatus] = useState("all")
     const [filteredListings, setFilteredListings] = useState(listings)
     const [showModal, setShowModal] = useState(false)
+    const username = useSelector(state => state.auth.username)
     const [currentListing, setCurrentListing] = useState(null)
+    const dispatch = useDispatch()
+
 
     useEffect(() => {
         if (filteredStatus === "all") {
@@ -42,29 +47,67 @@ export default function Dashboard({ listings }) {
         setCurrentListing({ ...currentListing, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (e, listingToUpdate = currentListing) => {
+        if (e) e.preventDefault();
 
-        const res = await fetch(`/api/${currentListing.id}`, {
+        if (!listingToUpdate || !listingToUpdate.id) {
+            dispatch(showFeedback({ type: 'error', message: 'Listing data is invalid.' }));
+            return;
+        }
+
+        const originalListing = listings.find(item => item.id === listingToUpdate.id);
+        const changedFields = {};
+        for (const key in listingToUpdate) {
+            if (listingToUpdate[key] !== originalListing[key]) {
+                changedFields[key] = {
+                    from: originalListing[key],
+                    to: listingToUpdate[key]
+                };
+            }
+        }
+
+        const res = await fetch(`/api/${listingToUpdate.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(currentListing),
+            body: JSON.stringify(listingToUpdate),
         });
 
         if (res.ok) {
-            const updated = await res.json()
+            const updated = await res.json();
             setFilteredListings((prev) =>
                 prev.map((item) => (item.id === updated.id ? updated : item))
             );
-            setShowModal(false);
 
-            alert('Listing updated!')
+            if (listingToUpdate === currentListing) {
+                setShowModal(false);
+            }
+
+            await fetch('/api/logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    admin: username || 'Unknown',
+                    action: `Updated listing fields`,
+                    target: updated.title,
+                    changes: changedFields,
+                    timestamp: new Date().toISOString(),
+                }),
+            });
+
+            dispatch(showFeedback({ type: 'success', message: 'Listing updated!' }));
         } else {
-            alert('Failed to update')
+            dispatch(showFeedback({ type: 'error', message: 'Failed to update' }));
         }
     };
+
+
+    const quickUpdateStatus = (listing, newStatus) => {
+        const updatedListing = { ...listing, status: newStatus };
+        handleSubmit(null, updatedListing);
+    };
+
 
 
     return (
@@ -90,6 +133,9 @@ export default function Dashboard({ listings }) {
                         <tr>
                             <th className="p-3 border-b">Title</th>
                             <th className="p-3 border-b">Status</th>
+                            <th className="p-3 border-b">Price</th>
+                            <th className="p-3 border-b">Location</th>
+                            <th className="p-3 border-b">Owner Email</th>
                             <th className="p-3 border-b">Actions</th>
                         </tr>
                     </thead>
@@ -99,9 +145,22 @@ export default function Dashboard({ listings }) {
                                 <tr key={listing.id} className="border-b hover:bg-gray-50">
                                     <td className="p-3">{listing.title}</td>
                                     <td className="p-3 capitalize">{listing.status}</td>
+                                    <td className="p-3 capitalize">{listing.pricePerDay}</td>
+                                    <td className="p-3 capitalize">{listing.location}</td>
+                                    <td className="p-3 capitalize">{listing.owner}</td>
                                     <td className="p-3 flex gap-2">
-                                        <button className="px-2 py-1 bg-green-500 text-white rounded">Approve</button>
-                                        <button className="px-2 py-1 bg-red-500 text-white rounded">Reject</button>
+                                        <button
+                                            onClick={() => quickUpdateStatus(listing, 'approved')}
+                                            className="px-2 py-1 bg-green-500 text-white rounded"
+                                        >
+                                            Approve
+                                        </button>
+                                        <button
+                                            onClick={() => quickUpdateStatus(listing, 'rejected')}
+                                            className="px-2 py-1 bg-red-500 text-white rounded"
+                                        >
+                                            Reject
+                                        </button>
                                         <button
                                             onClick={() => handleEditClick(listing)}
                                             className="px-2 py-1 bg-blue-500 text-white rounded"
@@ -124,18 +183,40 @@ export default function Dashboard({ listings }) {
 
             {showModal && currentListing && (
                 <div className="fixed inset-0 bg-gray-200/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded shadow-md w-96">
-                        <h2 className="text-xl font-bold mb-4">Edit Listing</h2>
+                    <div className="bg-white p-6 rounded-3xl shadow-md w-96">
+                        <h2 className="text-xl font-bold mb-4">Edit Car Details</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="block font-medium mb-1">Title:</label>
+                                <label className="block text-base font-medium mb-1">Title:</label>
                                 <input
                                     type="text"
                                     name="title"
                                     value={currentListing.title}
                                     onChange={handleInputChange}
                                     className="w-full border p-2 rounded"
-                                    readOnly
+
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-medium mb-1">Price:</label>
+                                <input
+                                    type="text"
+                                    name="pricePerDay"
+                                    value={currentListing.pricePerDay}
+                                    onChange={handleInputChange}
+                                    className="w-full border p-2 rounded"
+
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-medium mb-1">Location:</label>
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value={currentListing.location}
+                                    onChange={handleInputChange}
+                                    className="w-full border p-2 rounded"
+
                                 />
                             </div>
                             <div className="mb-4">
@@ -154,7 +235,7 @@ export default function Dashboard({ listings }) {
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => setShowModl(false)}
+                                    onClick={() => setShowModal(false)}
                                     className="px-4 py-2 bg-gray-300 rounded"
                                 >
                                     Cancel

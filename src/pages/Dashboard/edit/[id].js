@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useDispatch } from 'react-redux'
+import { showFeedback } from '@/store/feedbackSlice'
 
 export async function getServerSideProps(context) {
     const { id } = context.params;
@@ -23,6 +25,7 @@ export async function getServerSideProps(context) {
 
 export default function EditListing({ listing }) {
     const router = useRouter();
+    const dispatch = useDispatch()
     const [formData, setFormData] = useState({
         title: listing.title,
         status: listing.status,
@@ -45,7 +48,7 @@ export default function EditListing({ listing }) {
         if (res.ok) {
             router.push('/dashboard');
         } else {
-            alert('Failed to update listing');
+            dispatch(showFeedback({ type: 'error', message: 'Failed to update listing ' }));
         }
     };
 
