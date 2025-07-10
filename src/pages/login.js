@@ -5,8 +5,9 @@ import { authUser } from "../lib/User"
 import { useDispatch } from 'react-redux'
 import { loginSuccess } from '../store/authSlice'
 import { showFeedback } from '@/store/feedbackSlice'
+import Image from 'next/image'
 
-const page = () => {
+const Login = () => {
     const router = useRouter()
     const dispatch = useDispatch();
     const [email, setEmail] = useState()
@@ -32,12 +33,16 @@ const page = () => {
         <>
             <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                    <img
-                        alt="One-Click-Drive-Logo"
-                        src="/assets/image/logo.svg"
-                        className="mx-auto h-10 w-auto"
-                    />
-                    <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+                    <div className="w-full h-20 flex items-center justify-center">
+                        <Image
+                            src="/assets/image/logo.svg"
+                            alt="OneClickDrive Logo"
+                            width={350}
+                            height={60}
+                            className="object-contain"
+                        />
+                    </div>
+                    <h2 className="mt-2 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
                         Sign in to your account
                     </h2>
                 </div>
@@ -98,4 +103,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Login

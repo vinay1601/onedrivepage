@@ -24,7 +24,7 @@ export default function Home() {
     } else {
       router.replace('/login')
     }
-  }, [])
+  }, [router])
   return (
     <>
       {/* <h1>index</h1> */}
