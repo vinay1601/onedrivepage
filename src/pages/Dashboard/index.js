@@ -51,7 +51,7 @@ export default function Dashboard({ listings }) {
         if (e) e.preventDefault();
 
         if (!listingToUpdate || !listingToUpdate.id) {
-            dispatch(showFeedback({ type: 'error', message: 'Listing data is invalid.' }));
+            dispatch(showFeedback({ type: 'error', message: 'Listing data is invalid.!' }));
             return;
         }
 
